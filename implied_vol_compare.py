@@ -61,16 +61,17 @@ day_count = 0
 
 
 realtime_dir = get_realtime_data()
-realtime_all_mtr_options = realtime_dir.get_tradetime_vol( datetime.datetime.combine(np.datetime64(startDate).astype(datetime.date), tradeHour), 1)
+orderbook = realtime_dir.get_realtime_orderbook(startDate)
+realtime_all_mtr_options = realtime_dir.get_tradetime_vol(datetime.datetime.combine(np.datetime64(startDate).astype(datetime.date), tradeHour), 1)
 #realtime_orderbook_dir = project_dir.realtime_orderbook_dir(startDate)
 #realtime_all_mtr_options.to_csv(realtime_orderbook_dir)
 #realtime_all = pd.read_csv(realtime_orderbook_dir)
 #realtime_all_mtr_options= realtime_all.iloc[: ,1:]
 #realtime_all_mtr_options = realtime_all_mtr_options.replace(0,np.nan)
 
-realtime_all_mtr_options['bid_iv'] = realtime_all_mtr_options['bid_iv'] /100
-realtime_all_mtr_options['ask_iv'] = realtime_all_mtr_options['ask_iv'] /100
-realtime_all_mtr_options['mark_iv'] = realtime_all_mtr_options['mark_iv'] /100
+realtime_all_mtr_options['bid_iv'] = realtime_all_mtr_options['bid_iv'] / 100
+realtime_all_mtr_options['ask_iv'] = realtime_all_mtr_options['ask_iv'] / 100
+realtime_all_mtr_options['mark_iv'] = realtime_all_mtr_options['mark_iv'] / 100
 
 
 for d in np.arange(startDate, endDate):
@@ -149,127 +150,6 @@ for mtr, mtr_group in combine_mtr_options:
     mtr_count += 1
 writer.save()
 
-#plot surface and smile
-surface_data = combine_all_mtr_options.loc[combine_all_mtr_options['ValueType'] == 'OTM']
-surface_data['Maturityint'] = surface_data['Maturity'].apply(lambda t: int(str(t).replace('-','')))
-
-plot_dir = project_dir.implied_vol_plot_dir(date=datetime.date.today().strftime("%Y%m%d"))
-pdf = PdfPages(plot_dir)
-#plot the vol curve:
-for i in ['mark_iv','m_mid_vol']:
-    fig = plt.figure()
-    ax1 = plt.axes(projection='3d')
-    Vol_surface = surface_data.pivot(index = 'Maturityint',columns = 'Strike',values= i)
-    X = list(set(surface_data['Maturityint']))
-    Y = list(set(surface_data['Strike']))
-    X.sort()
-    Y.sort()
-    Y,X = np.meshgrid(Y, X)
-    ax1.plot_surface(X,Y,Vol_surface)
-    ax1.contourf(X, Y, Vol_surface,
-                zdir='z',
-                offset=-2,
-                )
-    if i == 'mark_iv':
-        fig.suptitle('Realtime Vol Surface')
-    else:
-        fig.suptitle('My Vol Surface')
-    pdf.savefig()
-    plt.close()
-
-all_data_mtr = all_data.groupby('Maturity')
-ATM_option = pd.DataFrame()
-for mtr,mtr_group in all_data_mtr:
-    underlying_strike = mtr_group['underlying_price_x_x']
-    strike_list = abs(mtr_group['Strike']-underlying_strike)
-    min_index = strike_list.idxmin()
-    ATM_option = ATM_option.append(mtr_group.loc[min_index,:])
-# ATM call
-plt.figure(figsize=(6, 6))
-fig = plt.figure(1)
-ax1 = plt.subplot(311)
-ax1.plot(ATM_option['Maturity'],ATM_option['bid_iv_x'],'.-')
-ax1.plot( ATM_option['Maturity'],ATM_option['m_bid_vol_x'],'.-')
-ax1.legend(loc='upper right')
-ax1.set_ylim((-2,2))
-ax3 = plt.subplot(312)
-ax3.plot(ATM_option['Maturity'],ATM_option['ask_iv_x'],'.-')
-ax3.plot(ATM_option['Maturity'],ATM_option['m_ask_vol_x'],'.-')
-ax3.legend(loc='upper right')
-ax3.set_ylim((-2,2))
-ax5 = plt.subplot(313)
-ax5.plot(ATM_option['Maturity'],ATM_option['mark_iv_x'],'.-')
-ax5.plot(ATM_option['Maturity'],ATM_option['m_mid_vol_x'],'.-')
-ax5.legend(loc='upper right')
-ax5.set_ylim((-2,2))
-fig.suptitle('ATM Call Vol Term Structure')
-pdf.savefig()
-plt.close()
-# ATM put
-plt.figure(figsize=(6, 6))
-fig = plt.figure(1)
-ax2 = plt.subplot(311)
-ax2.plot(ATM_option['Maturity'],ATM_option['bid_iv_y'],'.-')
-ax2.plot(ATM_option['Maturity'],ATM_option['m_bid_vol_y'],'.-')
-ax2.legend(loc='upper right')
-ax2.set_ylim((-2,2))
-ax4 = plt.subplot(312)
-ax4.plot(ATM_option['Maturity'],ATM_option['ask_iv_y'],'.-')
-ax4.plot(ATM_option['Maturity'],ATM_option['m_ask_vol_y'],'.-')
-ax4.legend(loc='upper right')
-ax4.set_ylim((-2,2))
-ax6 = plt.subplot(313)
-ax6.plot(ATM_option['Maturity'],ATM_option['mark_iv_y'],'.-')
-ax6.plot(ATM_option['Maturity'],ATM_option['m_mid_vol_y'],'.-')
-ax6.legend(loc='upper right')
-ax6.set_ylim((-2,2))
-fig.suptitle('ATM Put Vol Term Structure')
-pdf.savefig()
-plt.close()
-for mtr,mtr_group in all_data_mtr:
-    plt.figure(figsize=(6, 6))
-    fig = plt.figure(1)
-    ax1 = plt.subplot(321)
-    ax1.plot(mtr_group['Strike'],mtr_group['bid_iv_x'],'.-')
-    ax1.plot(mtr_group['Strike'],mtr_group['m_bid_vol_x'],'.-')
-    ax1.set_title('Call Bid Vol')
-    ax1.legend(loc = 'upper right')
-
-    ax2 = plt.subplot(322)
-    ax2.plot(mtr_group['Strike'], mtr_group['bid_iv_y'],'.-')
-    ax2.plot(mtr_group['Strike'],mtr_group['m_bid_vol_y'],'.-')
-    ax2.set_title('Put Bid Vol')
-    ax2.legend(loc = 'upper right')
-
-    ax3 = plt.subplot(323)
-    ax3.plot(mtr_group['Strike'],mtr_group['ask_iv_x'],'.-')
-    ax3.plot(mtr_group['Strike'],mtr_group['m_ask_vol_x'],'.-')
-    ax3.set_title('Call Ask Vol')
-    ax3.legend(loc = 'upper right')
-
-    ax4 = plt.subplot(324)
-    ax4.plot(mtr_group['Strike'],mtr_group['ask_iv_y'],'.-')
-    ax4.plot(mtr_group['Strike'],mtr_group['m_ask_vol_y'],'.-')
-    ax4.set_title('Put Ask Vol')
-    ax4.legend(loc = 'upper right')
-
-    ax5 = plt.subplot(325)
-    ax5.plot(mtr_group['Strike'], mtr_group['mark_iv_x'],'.-')
-    ax5.plot(mtr_group['Strike'], mtr_group['m_mid_vol_x'],'.-')
-    ax5.set_title('Call Mid Vol')
-    ax5.legend(loc = 'upper right')
-
-    ax6 = plt.subplot(326)
-    ax6.plot(mtr_group['Strike'], mtr_group['mark_iv_y'],'.-')
-    ax6.plot(mtr_group['Strike'], mtr_group['m_mid_vol_y'],'.-')
-    ax6.set_title('Put Mid Vol')
-    ax6.legend(loc = 'upper right')
-
-    plt.tight_layout()
-    fig.suptitle(str(mtr))
-    pdf.savefig()
-    plt.close()
-pdf.close()
 
 
 

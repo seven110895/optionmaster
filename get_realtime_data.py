@@ -51,7 +51,8 @@ class get_realtime_data:
     def get_realtime_orderbook(self, date):
         date_str = date
         date_str = str(date_str).replace("-", "")
-        h5file = "X:\\SG\\deribit\\DERIBIT_"+date_str +"_ticker.h5"
+        h5file = "X:\\SG_bydate\\deribit\\DERIBIT_" + date_str +"_ticker.h5"
+        #h5file = "Y:\\deribit\\ticker_old\\DERIBIT_20200427.h5ticker"
         #h5file = 'Y:/deribit/ticker_old/DERIBIT_' + date_str +'.h5ticker'
         option_df = self.get_ticker_df(h5file)
         option_df['timestamp'] = option_df['timestamp'].apply(lambda i: datetime.datetime.fromtimestamp(i/1000)- datetime.timedelta(hours= 8))

@@ -19,7 +19,6 @@ class get_data:
         self.fileName=f
 
     def to_dataframe(self):
-
         price=[]
         time=[]
         lineCount=0

@@ -116,22 +116,6 @@ vol_fit_day = vol_fit.loc[:,[1,5,15,30,60,180]]
 vol_fit_day.columns = ['1-day-vol','5-day-vol','15-day-vol','30-day-vol','60-day-vol','180-day-vol']
 vol_fit_day.to_csv("D:/optionmaster/Straddle/Vol_plot/ATM_vol_term_structure_V3_fit.csv")
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 mtr_count = 0
 pdf = PdfPages("D:/optionmaster/Straddle/Vol_plot/ATM_vol_term_structure_V2.pdf")
 vol_df_mtr = all_mtr_options.groupby('Date')

@@ -165,7 +165,7 @@ for d in np.arange(startDate, endDate):
             all_mtr_options = all_mtr_options.append(daily_mtr_options)
         day_count += 1
 
-all_mtr_options.to_csv("D:/optionmaster/Straddle/Straddle_vol/All_implied_Vol_tradedistance10.csv")
+all_mtr_options.to_csv("D:/optionmaster/Straddle/Straddle_vol/ALL_MTR_STRIKE_V2.csv")
 #all_mtr_options.to_csv("/Users/wenjinfeng/Downloads/OptionResearch-master/Straddle/vol_history/Oct_all.csv")
 
 
